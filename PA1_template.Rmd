@@ -5,6 +5,7 @@ output:
     keep_md: true
 ---
 
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -101,3 +102,36 @@ median(date_steps2$total_steps)
 The median of total steps per day becomes 11766.19, the same as the mean value.
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+add one more column to "alldata2
+```{r}
+tmp<-sapply(weekdays(alldata2$date),function(x) if (x=="Sunday"|x=="Saturday") {"Weekend"} else {"Weekday"})
+alldata2<-cbind(alldata2,wd=as.factor(tmp))
+```
+calculate the mean values of steps for the weekend and weekday.
+```{r}
+alldata3<-aggregate(alldata2$steps,list(inte=alldata2$interval,wd=alldata2$wd),mean)
+
+```
+create the panel plot.
+```{r}
+#alldata3$inte<-strptime(alldata3$inte,"%H%M")
+alldata3$inte<-as.numeric(alldata3$inte)
+library(lattice) 
+xyplot(x~inte|wd,alldata3, layout=c(1,2),xlab="Interval",ylab="Number of Steps",type='l')
+```
+The difference is obvious.
+
+## Some comments
+In the previous figure there are some funny discontinuity between every xx55 to xx00 Interval (You can see that in the instructor's simulation figure). This is the result of the time format string "HHMM" being interpret as integer numbers.
+
+I avoid this problem by phrasing the time string correctly to POSIXlt format in other figures. However, it appears the lattice plotting system doesn't accept POSIXlt as the x-axis. The following is the correct figure using the base plot system.
+
+```{r}
+alldata4<-aggregate(alldata2$steps,list(inte=alldata2$interval,wd=alldata2$wd),mean)
+alldata4$inte<-strptime(alldata4$inte,"%H%M")
+
+par(mfrow=c(2,1))
+plot(alldata4$inte[alldata4$wd=="Weekend"],alldata4$x[alldata4$wd=="Weekend"],type = "l",xlab="interval (Weekend)",ylab="Number of Steps")
+plot(alldata4$inte[alldata4$wd=="Weekday"],alldata4$x[alldata4$wd=="Weekday"],type = "l",xlab="interval (Weekend)",ylab="Number of Steps")
+```
