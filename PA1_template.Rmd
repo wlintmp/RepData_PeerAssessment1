@@ -123,9 +123,9 @@ xyplot(x~inte|wd,alldata3, layout=c(1,2),xlab="Interval",ylab="Number of Steps",
 The difference is obvious.
 
 ## Some comments
-In the previous figure there are some funny discontinuity between every xx55 to xx00 Interval (You can see that in the instructor's simulation figure). This is the result of the time format string "HHMM" being interpret as integer numbers.
+In the previous figure, there are some funny discontinuity between every xx55 to xx00 Interval (You can see that in the instructor's simulation figure, too). This is the result of the time format string "HHMM" being interpret as integer numbers.
 
-I avoid this problem by phrasing the time string correctly to POSIXlt format in other figures. However, it appears the lattice plotting system doesn't accept POSIXlt as the x-axis. The following is the correct figure using the base plot system.
+I avoid this problem by phrasing the time string correctly to POSIXlt format in other figures. However, it appears the lattice plotting system doesn't accept POSIXlt as the x-axis, so I have no choice. The following is the correct figure using the base plotting system.
 
 ```{r}
 alldata4<-aggregate(alldata2$steps,list(inte=alldata2$interval,wd=alldata2$wd),mean)
