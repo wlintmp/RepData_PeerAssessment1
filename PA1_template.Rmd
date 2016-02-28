@@ -5,21 +5,99 @@ output:
     keep_md: true
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
 
 ## Loading and preprocessing the data
 
+read data from "activity.csv" to a data.frame, "alldata".
 
+```{r}
+alldata<-read.csv("activity.csv")
+alldata$interval<-sapply(alldata$interval,function(x) paste(paste(rep("0",4-nchar(as.character(x))),sep="",collapse = ''),as.character(x),sep=""))
+alldata$date <- as.Date(alldata$date, format = "%Y-%m-%d")
+```
+copy all the non-NA observation to a data.frame, "cleandata".
+```{r}
+cleandata <- alldata[!is.na(alldata$steps),]
+```
 
 ## What is mean total number of steps taken per day?
 
+Calculate the averaged total steps per day and put them in "data_steps".
 
+```{r}
+date_steps<-aggregate(cleandata$steps,list(date=cleandata$date),sum)
+colnames(date_steps)[2]<-"total_steps"
+hist(date_steps$total_steps,main="total steps per day",xlab="")
+```
+
+```{r}
+mean(date_steps$total_steps)
+```
+The mean of total steps per day are 11766.19.
+
+```{r}
+median(date_steps$total_steps)
+
+```
+The median of total steps per day are `r median(date_steps$total_steps)`.
 
 ## What is the average daily activity pattern?
 
+```{r}
+interval_steps<-aggregate(cleandata$steps,list(inte=cleandata$interval),mean)
+plot(strptime(interval_steps$inte,"%H%M"),interval_steps$x,type = "l",xlab="interval",ylab="mean steps")
+```
 
+Calculate the interval which has the maximum mean steps:
+```{r}
+idx<-which(interval_steps$x==max(interval_steps$x))
+interval_steps$inte[idx]
+```
+
+The mean steps has its maximum at interval 8:35.
 
 ## Imputing missing values
 
+Calculate the total number of missing values in the dataset:
+```{r}
+sum(is.na(alldata$steps))
+```
+The total number of missing values is 2304.
 
+Fill the NA slots with the mean value of the steps at the same interval of other days.
+
+First we create a function that takes values of steps from the corresponding time period if the value of steps is NA.
+```{r}
+rmna <- function (x,y) {
+  if(is.na(x)) {
+    interval_steps[which(interval_steps$inte==(y)),2]
+  } else {x}
+}
+```
+Now mapply the function to create a data set "alldata2" with all NA value filled.
+```{r}
+alldata2<-alldata
+alldata2$steps<-mapply(rmna,alldata$steps,alldata$interval)
+```
+plot the histogram again with alldata2.
+```{r}
+date_steps2<-aggregate(alldata2$steps,list(date=alldata2$date),sum)
+colnames(date_steps2)[2]<-"total_steps"
+hist(date_steps2$total_steps,main="total steps per day",xlab="")
+```
+
+```{r}
+mean(date_steps2$total_steps)
+```
+The mean of total steps per day are the same as before, 11766.19.
+
+```{r}
+median(date_steps2$total_steps)
+
+```
+The median of total steps per day becomes 11766.19, the same as the mean value.
 
 ## Are there differences in activity patterns between weekdays and weekends?
